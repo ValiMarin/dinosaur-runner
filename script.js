@@ -7,8 +7,8 @@ canvas.width = window.innerWidth * 0.8;
 canvas.height = window.innerHeight * 0.7;
 
 let player,
-  isGrounded,
-  getUp,
+  keepJumping,
+  stayDown,
   gameSpeed,
   obstacles,
   secondsAliveInterval,
@@ -49,15 +49,15 @@ function newGame(time) {
     secondsAlive = 0;
     avoidedObjectsCounter = 0;
     difficulty = 2500;
-    isGrounded = true;
-    getUp = true;
+    keepJumping = true;
+    stayDown = false;
     gameSpeed = 3;
     obstacles = [];
     seconds.textContent = "Seconds: 0";
     avoidedObjects.textContent = "Avoided objects: 0";
     gameOver = false;
 
-    playerInitialPosition();
+    setInitialPlayerPosition();
     spawnerObstacles();
     spawnerStones();
     spawnerClouds();
@@ -66,7 +66,7 @@ function newGame(time) {
   }, time);
 }
 
-function playerInitialPosition() {
+function setInitialPlayerPosition() {
   player = {
     x: 50,
     y: canvas.height - 200,
@@ -79,18 +79,8 @@ function playerInitialPosition() {
 }
 
 function spawnerObstacles() {
-  const width = Math.random() * (70 - 20) + 20;
-  const height = Math.random() * (80 - 50) + 50;
-
-  const colors = ["red", "green", "blue", "yellow", "pink", "white"];
-  const randomColor = colors[Math.floor(Math.random() * colors.length)];
-
-  let ground = 100;
-
   setTimeout(() => {
-    if (randomColor === "pink") ground = Math.random() * (240 - 160) + 160;
-
-    spawnObsticle(width, height, ground, randomColor);
+    spawnObsticle();
 
     if (difficulty > 2500) difficulty -= 50;
     else if (difficulty > 2300) difficulty -= 50;
@@ -103,64 +93,64 @@ function spawnerObstacles() {
   }, difficulty);
 }
 
-function spawnObsticle(width, height, ground, color) {
+function spawnObsticle() {
+  const height = random(50, 80);
+
+  const colors = ["red", "green", "blue", "yellow", "pink", "white"];
+  const color = colors[Math.floor(random(0, colors.length))];
+
+  let ground = 100;
+
+  //bird
+  if (color === "pink") ground = random(160, 220);
+
   obstacles.push({
     x: canvas.width,
     y: canvas.height - ground - height,
-    width: width,
+    width: random(20, 70),
     height: height,
     color: color,
   });
 }
 
 function spawnerStones() {
-  const width = Math.random() * (15 - 3) + 3;
-  const height = Math.random() * (15 - 3) + 3;
-  const position =
-    Math.random() * (canvas.height - (canvas.height - 100 + height)) +
-    canvas.height -
-    100 +
-    height;
-
   setTimeout(() => {
-    spawnStone(width, height, position);
+    spawnStone();
     if (!gameOver) spawnerStones();
   }, 150);
 }
 
-function spawnStone(width, height, position) {
+function spawnStone() {
+  const height = random(3, 15);
+  const verticalPosition = random(canvas.height - 100 + height, canvas.height);
+
   stones.push({
     x: canvas.width,
-    y: position,
-    width: width,
+    y: verticalPosition,
+    width: random(3, 15),
     height: height,
   });
 }
 
 function spawnerClouds() {
-  const width = Math.random() * (400 - 250) + 250;
-  const height = Math.random() * (240 - 120) + 120;
-  const position = Math.random() * (canvas.height / 2);
   setTimeout(() => {
-    spawnCloud(width, height, position);
+    spawnCloud();
     if (!gameOver) spawnerClouds();
   }, 700);
 }
 
-function spawnCloud(width, height, position) {
+function spawnCloud() {
   clouds.push({
     x: canvas.width,
-    y: position,
-    width: width,
-    height: height,
+    y: random(0, canvas.height / 2),
+    width: random(250, 400),
+    height: random(120, 240),
     speed: 2,
   });
 }
 
 function spawnerGrass() {
-  const topPoint =
-    Math.random() * (canvas.height - 100 - (canvas.height - 117)) +
-    (canvas.height - 117);
+  const topPoint = random(canvas.height - 117, canvas.height - 100);
 
   setTimeout(() => {
     if (canvas.height - 100 - topPoint >= 4) {
@@ -179,6 +169,10 @@ function spawnGrass(topPoint) {
   });
 }
 
+function random(min, max) {
+  return Math.random() * (max - min) + min;
+}
+
 function update() {
   if (gameOver) {
     return;
@@ -192,28 +186,27 @@ function update() {
 }
 
 function jump() {
-  if (keys[" "] && isGrounded && player.y > canvas.height - 500 && getUp) {
+  if (keys[" "] && keepJumping && player.y > canvas.height - 500 && !stayDown) {
     player.y -= player.jumpSpeed;
   } else if (player.y + player.height < canvas.height - 100) {
     player.y += player.gravity;
-    isGrounded = false;
+    keepJumping = false;
   }
 
-  if (player.y + player.height >= canvas.height - 100) isGrounded = true;
+  if (player.y + player.height >= canvas.height - 100) keepJumping = true;
 }
 
 function stayLow() {
   if (keys.ArrowDown) {
-    if (isGrounded) {
-      player.y = canvas.height - 150;
-      player.height = 50;
-      getUp = false;
-    } else player.gravity = 12;
-  } else if (!getUp) {
+    player.y = canvas.height - 150;
+    player.height = 50;
+    stayDown = true;
+    player.gravity = 8;
+  } else if (stayDown) {
     player.y = canvas.height - 200;
     player.height = 100;
     player.gravity = 4;
-    getUp = true;
+    stayDown = false;
   }
 }
 
@@ -274,7 +267,7 @@ function drawObstacles() {
       obstacles[i].height
     );
 
-    if (checkCollider(player, obstacles[i])) {
+    if (checkCollision(player, obstacles[i])) {
       clearInterval(secondsAliveInterval);
       gameOver = true;
       newGame(3000);
@@ -330,8 +323,8 @@ function drawSun() {
       cloudsColor = "rgba(0, 0, 0, 0.41)";
     } else {
       skyColor = " rgba(255, 255, 255, 0.43)";
-      (sun.color = " rgb(255, 239, 97)"),
-        (cloudsColor = "rgba(255, 255, 255, 0.56)");
+      sun.color = " rgb(255, 239, 97)";
+      cloudsColor = "rgba(255, 255, 255, 0.56)";
     }
   }
 
@@ -341,7 +334,7 @@ function drawSun() {
   context.fill();
 }
 
-function checkCollider(player, obstacle) {
+function checkCollision(player, obstacle) {
   return (
     player.x < obstacle.x + obstacle.width &&
     player.x + player.width > obstacle.x &&
