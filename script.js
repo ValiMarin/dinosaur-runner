@@ -37,6 +37,13 @@ const difficultyLevels = [
   { limit: 1000, decrease: 10 },
 ];
 
+const playerPositionX = 55;
+const playerPositionY = canvas.height - 200;
+const playerSize = 100;
+const maxJumpHeight = canvas.height - 500;
+const groundLevel = canvas.height - 100;
+const stayDownLevel = canvas.height - 150;
+
 const keys = {};
 
 document.addEventListener("keydown", (e) => {
@@ -76,10 +83,10 @@ function newGame(time) {
 
 function setInitialPlayerPosition() {
   player = {
-    x: 50,
-    y: canvas.height - 200,
-    width: 100,
-    height: 100,
+    x: playerPositionX,
+    y: playerPositionY,
+    width: playerSize,
+    height: playerSize,
     jumpSpeed: 8,
     gravity: 4,
     color: "rgba(30, 76, 228, 1)",
@@ -130,7 +137,7 @@ function spawnerStones() {
 
 function spawnStone() {
   const height = random(3, 15);
-  const verticalPosition = random(canvas.height - 100 + height, canvas.height);
+  const verticalPosition = random(groundLevel + height, canvas.height);
 
   stones.push({
     x: canvas.width,
@@ -158,10 +165,11 @@ function spawnCloud() {
 }
 
 function spawnerGrass() {
-  const topPoint = random(canvas.height - 117, canvas.height - 100);
+  const maxHeight = canvas.height - 117;
+  const topPoint = random(maxHeight, groundLevel);
 
   setTimeout(() => {
-    if (canvas.height - 100 - topPoint >= 4) {
+    if (groundLevel - topPoint >= 4) {
       spawnGrass(topPoint);
     }
     if (!gameOver) spawnerGrass();
@@ -173,7 +181,7 @@ function spawnGrass(topPoint) {
     x: canvas.width,
     y: topPoint,
     width: 5,
-    height: canvas.height - 100 - topPoint,
+    height: groundLevel - topPoint,
   });
 }
 
@@ -194,25 +202,25 @@ function update() {
 }
 
 function jump() {
-  if (keys[" "] && keepJumping && player.y > canvas.height - 500 && !stayDown) {
+  if (keys[" "] && keepJumping && player.y > maxJumpHeight && !stayDown) {
     player.y -= player.jumpSpeed;
-  } else if (player.y + player.height < canvas.height - 100) {
+  } else if (player.y + player.height < groundLevel) {
     player.y += player.gravity;
     keepJumping = false;
   }
 
-  if (player.y + player.height >= canvas.height - 100) keepJumping = true;
+  if (player.y + player.height >= groundLevel) keepJumping = true;
 }
 
 function stayLow() {
   if (keys.ArrowDown) {
-    player.y = canvas.height - 150;
-    player.height = 50;
+    player.y = stayDownLevel;
+    player.height = playerSize / 2;
     stayDown = true;
     player.gravity = 8;
   } else if (stayDown) {
-    player.y = canvas.height - 200;
-    player.height = 100;
+    player.y = playerPositionY;
+    player.height = playerSize;
     player.gravity = 4;
     stayDown = false;
   }
@@ -234,11 +242,11 @@ function draw() {
 
   //draw land
   context.fillStyle = "rgb(73, 45, 19)";
-  context.fillRect(0, canvas.height - 100, canvas.width, canvas.height);
+  context.fillRect(0, groundLevel, canvas.width, canvas.height);
 
   //draw land line
   context.fillStyle = "rgb(47, 42, 37)";
-  context.fillRect(0, canvas.height - 100, canvas.width, 8);
+  context.fillRect(0, groundLevel, canvas.width, 8);
 
   drawObstacles();
   drawStones();
