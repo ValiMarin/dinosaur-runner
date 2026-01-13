@@ -29,6 +29,14 @@ let player,
     speed: 1,
   };
 
+const difficultyLevels = [
+  { limit: 2300, decrease: 50 },
+  { limit: 2100, decrease: 40 },
+  { limit: 1800, decrease: 30 },
+  { limit: 1300, decrease: 20 },
+  { limit: 1000, decrease: 10 },
+];
+
 const keys = {};
 
 document.addEventListener("keydown", (e) => {
@@ -82,12 +90,10 @@ function spawnerObstacles() {
   setTimeout(() => {
     spawnObsticle();
 
-    if (difficulty > 2500) difficulty -= 50;
-    else if (difficulty > 2300) difficulty -= 50;
-    else if (difficulty > 2100) difficulty -= 40;
-    else if (difficulty > 1800) difficulty -= 30;
-    else if (difficulty > 1300) difficulty -= 20;
-    else if (difficulty > 1000) difficulty -= 10;
+    for (let i = difficultyLevels.length - 1; i >= 0; --i) {
+      if (difficulty > difficultyLevels[i].limit)
+        difficulty -= difficultyLevels[i].decrease;
+    }
 
     if (!gameOver) spawnerObstacles();
   }, difficulty);
