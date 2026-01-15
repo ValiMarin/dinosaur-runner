@@ -6,6 +6,17 @@ const avoidedObjects = document.getElementById("avoidedObjects");
 canvas.width = window.innerWidth * 0.8;
 canvas.height = window.innerHeight * 0.7;
 
+const dayTimeSkyColor = "rgba(255, 255, 255, 0.43)";
+const dayTimeCloudsColor = "rgba(255, 255, 255, 0.56)";
+const sunColor = " rgb(255, 239, 97)";
+const nightTimeSkyColor = " rgba(0, 0, 0, 0.25)";
+const moonColor = " rgb(195, 244, 254)";
+const nightTimeCloudsColor = "rgba(0, 0, 0, 0.41)";
+const grassColor = "rgb(21, 104, 25)";
+const stonesColor = "rgba(90, 90, 90, 1)";
+const landColor = "rgb(73, 45, 19)";
+const landLineColor = "rgb(47, 42, 37)";
+
 let player,
   keepJumping,
   stayDown,
@@ -19,13 +30,13 @@ let player,
   clouds = [],
   grass = [],
   gameOver,
-  skyColor = " rgba(255, 255, 255, 0.43)",
-  cloudsColor = "rgba(255, 255, 255, 0.56)",
+  skyColor = dayTimeSkyColor,
+  cloudsColor = dayTimeCloudsColor,
   sun = {
     x: canvas.width + 100,
     y: canvas.height / 4,
     radius: 50,
-    color: " rgb(255, 239, 97)",
+    color: sunColor,
     speed: 1,
   };
 
@@ -241,11 +252,11 @@ function draw() {
   context.fillRect(player.x, player.y, player.width, player.height);
 
   //draw land
-  context.fillStyle = "rgb(73, 45, 19)";
+  context.fillStyle = landColor;
   context.fillRect(0, groundLevel, canvas.width, canvas.height);
 
   //draw land line
-  context.fillStyle = "rgb(47, 42, 37)";
+  context.fillStyle = landLineColor;
   context.fillRect(0, groundLevel, canvas.width, 8);
 
   drawObstacles();
@@ -302,7 +313,7 @@ function drawStones() {
   for (let i = stones.length - 1; i >= 0; --i) {
     stones[i].x -= gameSpeed;
 
-    context.fillStyle = "rgba(90, 90, 90, 1)";
+    context.fillStyle = stonesColor;
     context.fillRect(
       stones[i].x,
       stones[i].y,
@@ -320,7 +331,7 @@ function drawGrass() {
   for (let i = grass.length - 1; i >= 0; --i) {
     grass[i].x -= gameSpeed;
 
-    context.fillStyle = "rgb(21, 104, 25)";
+    context.fillStyle = grassColor;
     context.fillRect(grass[i].x, grass[i].y, grass[i].width, grass[i].height);
 
     if (grass[i].x + grass[i].width < 0) {
@@ -333,14 +344,14 @@ function drawSun() {
   if (sun.x + sun.radius > 0) sun.x -= sun.speed;
   else {
     sun.x = canvas.width + sun.radius * 2;
-    if (skyColor === " rgba(255, 255, 255, 0.43)") {
-      skyColor = " rgba(0, 0, 0, 0.25)";
-      sun.color = " rgb(195, 244, 254)";
-      cloudsColor = "rgba(0, 0, 0, 0.41)";
+    if (skyColor === dayTimeSkyColor) {
+      skyColor = nightTimeSkyColor;
+      sun.color = moonColor;
+      cloudsColor = nightTimeCloudsColor;
     } else {
-      skyColor = " rgba(255, 255, 255, 0.43)";
-      sun.color = " rgb(255, 239, 97)";
-      cloudsColor = "rgba(255, 255, 255, 0.56)";
+      skyColor = dayTimeSkyColor;
+      sun.color = sunColor;
+      cloudsColor = dayTimeCloudsColor;
     }
   }
 
